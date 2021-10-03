@@ -32,6 +32,8 @@ app.post('/upload', upload.single('image'), (req, res, next) =>  {
 
 app.get('/list', (req, res) => {
   fs.readdir(IMAGE_DIR, (err, files) => {
+    files = files.filter(file => !file.startsWith('.'));
+
     const filesData = files.map(file => {
       const {size, birthtimeMs} = fs.statSync(fullPath(file));
 
