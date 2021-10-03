@@ -25,6 +25,10 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
 const app = express();
 
+// app.get('/', function(req,res) {
+//   res.sendFile('/home/kim/yandex-academy/node/src/index.html');
+// });
+
 app.post('/upload', upload.single('image'), (req, res, next) =>  {
   res.status(201);
   res.json({'id': req.imageId});
@@ -48,25 +52,27 @@ app.get('/list', (req, res) => {
   });
 });
 
-// app.get('/', function(req,res) {
-//   res.sendFile('/home/kim/yandex-academy/node/src/index.html');
-// });
-
 app.get('/image/:id', function (req, res) {
   res.setHeader('content-type', 'image/jpeg');
   res.sendFile(fullPath(req.params.id + '.jpeg'), {'root': __dirname + '/../'}, err => {
-    res.status(err.code === 'ENOENT' ? 404 : 500);
-    res.send();
+    if (err) {
+      res.status(err.code === 'ENOENT' ? 404 : 500);
+      res.setHeader('content-type', 'text/plain');
+      res.end();
+    }
   });
 });
 
 app.delete('/image/:id', function (req, res) {
   fs.unlink(fullPath(req.params.id + '.jpeg'), (err) => {
-    res.status(err.code === 'ENOENT' ? 404 : 500);
-    res.send();
+    if (!err) {
+      res.status(200);
+      res.json({});
+    } else {
+      res.status(err.code === 'ENOENT' ? 404 : 500);
+      res.end();
+    }
   });
-  res.status(200);
-  res.json({});
 });
 
 app.get('/merge', function (req, res) {
@@ -77,7 +83,7 @@ app.get('/merge', function (req, res) {
   for (stream of [frontStream, backStream]) {
     stream.on('error', (error) => {
       res.status(error.code === 'ENOENT' ? 404 : 500);
-      res.send();
+      res.end();
     });
   }
 
